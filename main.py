@@ -5,7 +5,7 @@ app=Sanic(__name__)
 
 app.add_route(R.index,"/",methods=['GET'])
 app.add_route(R.static,"/static/<pth:path>",methods=['GET'])
-#add more route here
+
 
 if __name__ == '__main__':
     app.run("0.0.0.0",9090,fast=True)
