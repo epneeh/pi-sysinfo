@@ -11,7 +11,7 @@ env = Environment(
     autoescape=select_autoescape(['html'])
 )
 
-BASE_URL = "http://192.168.0.110:9090/"
+BASE_URL = "http://localhost:9090/"
 
 async def index(request):
     template = env.get_template('index.html')
