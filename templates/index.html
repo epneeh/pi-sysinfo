@@ -1,5 +1,202 @@
-{% extends "base.html" %}
+{% extends "base.html" %} {% block body %}
+<div>
+  <h4 class="mt-5">CPU Utilization</h4>
+  <hr />
+  <ul class="list-unstyled">
+    {% for value in cpu_percent %}
+    <li class="mb-2">
+      <div class="row">
+        <div class="col-lg-1">CPU : {{ loop.index }}</div>
+        <div class="col-lg-11">
+          <div class="progress">
+            <div
+              class="progress-bar"
+              id="util-{{ loop.index }}"
+              role="progressbar"
+              style="width: {{ value }}%"
+              aria-valuenow="{{ value }}"
+              aria-valuemin="0"
+              aria-valuemax="100"
+            >
+              <div id="utils-value-{{loop.index}}">{{ value }}%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  <h4 class="mt-5">CPU Frequency</h4>
+  <hr />
+  <ul class="list-unstyled">
+    {% for value in cpu_freq %}
+    <li class="mb-2">
+      <div class="row">
+        <div class="col-lg-1">CPU : {{ loop.index }}</div>
+        <div class="col-lg-11">
+          <div class="progress">
+            <div
+              class="progress-bar"
+              id="freq-{{ loop.index }}"
+              role="progressbar"
+              style="width: {{ ((value.current - value.min) * 100) / (value.max - value.min) }}%"
+              aria-valuenow="{{ ((value.current - value.min) * 100) / (value.max - value.min) }}"
+              aria-valuemin="0"
+              aria-valuemax="100"
+            >
+              <div id="freq-value-{{loop.index}}">{{ value.current }}Mhz</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  <h4 class="mt-5">Temperatures</h4>
+  <hr />
+  <ul class="list-unstyled">
+    {% for temp in temps %}
+    <li class="mb-2">
+      <div class="row">
+        <div class="col-lg-1">{{ temp.name }}</div>
+        <div class="col-lg-11">
+          <div class="progress">
+            <div
+              class="progress-bar"
+              id="temp-{{ temp.name }}"
+              role="progressbar"
+              style="width: {{ temp.current }}%"
+              aria-valuenow="{{ temp.current }}"
+              aria-valuemin="0"
+              aria-valuemax="100"
+            >
+              <div id="temp-value-{{temp.name}}">{{ temp.current }}C</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </li>
+    {% endfor %}
+  </ul>
+  <h4 class="mt-5">RAM</h4>
+  <hr />
+  <ul class="list-unstyled">
+    <li class="mb-2">
+      <div class="row">
+        <div class="col-lg-1">Usage</div>
+        <div class="col-lg-11">
+          <div class="progress">
+            <div
+              class="progress-bar"
+              id="ram"
+              role="progressbar"
+              style="width: {{ram.percent}}%"
+              aria-valuenow="{{ram.percent}}"
+              aria-valuemin="0"
+              aria-valuemax="100"
+            >
+              <div id="ram-value">{{ram.percent}}%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </li>
+  </ul>
 
-{% block body %}
-    {{ base_url }}
+  <h4 class="mt-5">Swap</h4>
+  <hr />
+  <ul class="list-unstyled">
+    <li class="mb-2">
+      <div class="row">
+        <div class="col-lg-1">Usage</div>
+        <div class="col-lg-11">
+          <div class="progress">
+            <div
+              class="progress-bar"
+              id="swap"
+              role="progressbar"
+              style="width: {{swap.percent}}%"
+              aria-valuenow="{{swap.percent}}"
+              aria-valuemin="0"
+              aria-valuemax="100"
+            >
+              <div id="swap-value">{{swap.percent}}%</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </li>
+  </ul>
+</div>
+
+{% endblock %} {% block script %}
+<script>
+  $(function () {
+    var req_url = "{{ base_url }}info";
+    setInterval(get_util, 2000);
+    setInterval(get_freq, 2000);
+    setInterval(get_temps, 2000);
+    setInterval(get_ram, 2000);
+    setInterval(get_swap, 2000);
+    function get_util() {
+      var pdata = { type: "cpu_util" };
+      $.post(req_url, pdata, function (data, status) {
+        if (status == "success") {
+          data.forEach(function (item, idx) {
+            $("#util-" + (idx + 1)).css("width", item + "%");
+            $("#utils-value-" + (idx + 1)).html(item + "%");
+          });
+        }
+      });
+    }
+
+    function get_freq() {
+      var pdata = { type: "freq" };
+      $.post(req_url, pdata, function (data, status) {
+        if (status == "success") {
+          data.forEach(function (item, idx) {
+            $("#freq-" + (idx + 1)).css(
+              "width",
+              ((item[0] - item[1]) * 100) / (item[2] - item[1]) + "%"
+            );
+            $("#freq-value-" + (idx + 1)).html(item[0] + "Mhz");
+          });
+        }
+      });
+    }
+
+    function get_temps() {
+      var pdata = { type: "temp" };
+      $.post(req_url, pdata, function (data, status) {
+        if (status == "success") {
+          data.forEach(function (item, idx) {
+            $("#temp-" + item.name).css("width", item.current + "%");
+            $("#temp-value-" + item.name).html(item.current + "C");
+          });
+        }
+      });
+    }
+
+    function get_ram() {
+      var pdata = { type: "ram" };
+      $.post(req_url, pdata, function (data, status) {
+        if (status == "success") {
+          $("#ram").css("width", data[2] + "%");
+          $("#ram-value").html(data[2] + "%");
+        }
+      });
+    }
+
+    function get_swap() {
+      var pdata = { type: "swap" };
+      $.post(req_url, pdata, function (data, status) {
+        if (status == "success") {
+          console.log(data);
+          $("#swap").css("width", data[3] + "%");
+          $("#swap-value").html(data[3] + "%");
+        }
+      });
+    }
+  });
+</script>
 {% endblock %}
