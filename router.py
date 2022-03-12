@@ -1,5 +1,6 @@
 from jinja2 import Environment, PackageLoader, select_autoescape
 from numpy import empty
+from sanic import json
 from sanic.response import html
 from sanic.response import file
 from os.path import exists
@@ -20,3 +21,7 @@ async def static(request,pth):
         return await file(sfile)
     else:
         return html('',404)
+
+async def info(request,type):
+
+    return json()
