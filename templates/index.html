@@ -190,7 +190,7 @@
     function get_swap() {
       var pdata = { type: "swap" };
       $.post(req_url, pdata, function (data, status) {
-        if (status == "success")
+        if (status == "success") {
           $("#swap").css("width", data[3] + "%");
           $("#swap-value").html(data[3] + "%");
         }
